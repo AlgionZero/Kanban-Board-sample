@@ -23,10 +23,11 @@ const DEFAULT_PROFILE = {
 }
 
 export function useWorkspace() {
-  const [profile, setProfile]     = useState(() => loadWorkspace() ?? DEFAULT_PROFILE)
-  const [invites, setInvites]     = useState(loadInvites)
-  const [isSignedIn, setIsSignedIn] = useState(() => loadAuth().isSignedIn)
-  const [activeModal, setActiveModal] = useState(null) // 'profile' | 'invite' | null
+  const [profile, setProfile]         = useState(() => loadWorkspace() ?? DEFAULT_PROFILE)
+  const [invites, setInvites]         = useState(loadInvites)
+  const [isSignedIn, setIsSignedIn]   = useState(() => loadAuth().isSignedIn ?? false)
+  const [hasAccount, setHasAccount]   = useState(() => !!(loadAuth().password && loadWorkspace()?.name))
+  const [activeModal, setActiveModal] = useState(null)
 
   const updateProfile = useCallback((patch) => {
     setProfile(prev => {
@@ -52,16 +53,38 @@ export function useWorkspace() {
     })
   }, [])
 
-  const signIn = useCallback((profileData) => {
+  // New user registration
+  const signUp = useCallback((profileData, password) => {
     const merged = { ...DEFAULT_PROFILE, ...profileData }
     saveWorkspace(merged)
-    saveAuth({ isSignedIn: true })
+    saveAuth({ isSignedIn: true, password })
     setProfile(merged)
     setIsSignedIn(true)
+    setHasAccount(true)
   }, [])
 
+  // Returning user login — returns error string or null on success
+  const login = useCallback((name, password) => {
+    const savedProfile = loadWorkspace()
+    const auth = loadAuth()
+
+    if (!savedProfile?.name || savedProfile.name.toLowerCase() !== name.toLowerCase().trim()) {
+      return 'No account found with that name.'
+    }
+    if (auth.password !== password) {
+      return 'Incorrect password.'
+    }
+
+    setProfile(savedProfile)
+    saveAuth({ ...auth, isSignedIn: true })
+    setIsSignedIn(true)
+    return null
+  }, [])
+
+  // Sign out — preserves profile and password so login works next time
   const signOut = useCallback(() => {
-    saveAuth({ isSignedIn: false })
+    const auth = loadAuth()
+    saveAuth({ ...auth, isSignedIn: false })
     setIsSignedIn(false)
   }, [])
 
@@ -71,7 +94,7 @@ export function useWorkspace() {
   return {
     profile, updateProfile,
     invites, addInvite, removeInvite,
-    isSignedIn, signIn, signOut,
+    isSignedIn, hasAccount, signUp, login, signOut,
     activeModal, openModal, closeModal,
   }
 }

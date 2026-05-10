@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Link, Check, UserMinus, Send, AlertCircle } from 'lucide-react'
+import { X, Link, Check, UserMinus, Send, AlertCircle, Mail } from 'lucide-react'
 import ModalBackdrop from '../Modal/ModalBackdrop.jsx'
 
 const ROLE_COLORS = {
@@ -29,6 +29,14 @@ export default function InviteModal({ invites, inviterName, onAdd, onRemove, onC
   const [sentTo,  setSentTo]  = useState(null) // last successfully invited email
 
   const canInvite = emailRe.test(email) && !sending
+
+  function buildMailtoLink() {
+    const subject = encodeURIComponent(`${inviterName || 'Someone'} invited you to Algion KB sample`)
+    const body = encodeURIComponent(
+      `Hi,\n\n${inviterName || 'Someone'} has invited you to join their Algion KB sample workspace as ${role}.\n\nClick the link below to get started:\n${window.location.origin}\n\nAll your data stays in your browser — no account required.\n\nAlgion KB sample`
+    )
+    return `mailto:${email}?subject=${subject}&body=${body}`
+  }
 
   async function handleInvite() {
     if (!canInvite) return
@@ -145,11 +153,23 @@ export default function InviteModal({ invites, inviterName, onAdd, onRemove, onC
           {/* Error banner */}
           {error && (
             <div
-              className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl text-xs"
-              style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}
+              className="rounded-xl text-xs"
+              style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)', padding: '10px 12px' }}
             >
-              <AlertCircle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
-              <span>{error}</span>
+              <div className="flex items-start gap-2.5">
+                <AlertCircle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>{error}</span>
+              </div>
+              {emailRe.test(email) && (
+                <a
+                  href={buildMailtoLink()}
+                  className="flex items-center gap-1.5 mt-2 font-semibold"
+                  style={{ color: '#C4B8FF', textDecoration: 'none', fontSize: 11 }}
+                >
+                  <Mail size={11} />
+                  Send via your email app instead →
+                </a>
+              )}
             </div>
           )}
 
@@ -185,10 +205,29 @@ export default function InviteModal({ invites, inviterName, onAdd, onRemove, onC
             ) : (
               <>
                 <Send size={13} />
-                Send Invite
+                Send Invite Email
               </>
             )}
           </button>
+
+          {/* Mailto fallback — always available */}
+          {emailRe.test(email) && (
+            <a
+              href={buildMailtoLink()}
+              className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-medium transition-all"
+              style={{
+                color: 'var(--t2)',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                textDecoration: 'none',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--t1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--t2)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+            >
+              <Mail size={12} />
+              Or open in my email app
+            </a>
+          )}
 
           <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
 
