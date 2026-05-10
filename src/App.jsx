@@ -28,7 +28,7 @@ export default function App() {
 
   // Gate: show sign-in screen when not authenticated
   if (!workspace.isSignedIn) {
-    return <SignInScreen onSignIn={workspace.signIn} />
+    return <SignInScreen onSignIn={workspace.signIn} savedProfile={workspace.profile} />
   }
 
   const { title, sub } = VIEW_TITLES[activeView]

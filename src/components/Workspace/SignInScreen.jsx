@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { Lightbulb } from 'lucide-react'
 import { AVATAR_COLORS, getInitials } from '../../hooks/useWorkspace.js'
 
-export default function SignInScreen({ onSignIn }) {
-  const [name,  setName]  = useState('')
-  const [role,  setRole]  = useState('')
-  const [email, setEmail] = useState('')
-  const [color, setColor] = useState('#7C5CFC')
+export default function SignInScreen({ onSignIn, savedProfile }) {
+  const [name,  setName]  = useState(savedProfile?.name  || '')
+  const [role,  setRole]  = useState(savedProfile?.role  || '')
+  const [email, setEmail] = useState(savedProfile?.email || '')
+  const [color, setColor] = useState(savedProfile?.avatarColor || '#7C5CFC')
 
   function handleSubmit(e) {
     e.preventDefault()
